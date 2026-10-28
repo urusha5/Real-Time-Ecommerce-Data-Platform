@@ -1,0 +1,17 @@
+.git
+.github
+.env
+.env.*
+secrets
+backups
+*.dump
+node_modules
+.npm-cache
+venv
+.venv
+__pycache__
+*.zip
+*.log
+dashboard/test
+dashboard/preview.jpg
+dashboard/scripts/setup-secrets.mjs

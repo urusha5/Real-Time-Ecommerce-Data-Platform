@@ -1,0 +1,16 @@
+{$DOMAIN} {
+  encode zstd gzip
+  @probes path /healthz /readyz
+  respond @probes 404
+  reverse_proxy app:3000 {
+    health_uri /readyz
+    health_interval 15s
+    health_timeout 5s
+    stream_timeout 8h
+    transport http {
+      dial_timeout 5s
+      response_header_timeout 15s
+    }
+  }
+  header -Server
+}

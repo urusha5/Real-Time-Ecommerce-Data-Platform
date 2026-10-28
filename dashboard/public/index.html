@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#15836b">
+  <meta name="description" content="Real-Time E-commerce Data Platform. A clear view of your commerce, from every transaction to the bigger picture.">
+  <title>Real-Time E-commerce Data Platform</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <div class="mobile-scrim" id="mobile-scrim"></div>
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <button class="icon-button sidebar-close" id="close-menu-button" aria-label="Close navigation"><span data-icon="close"></span></button>
+    <a href="#overview" class="brand" aria-label="Commerce home"><img src="/favicon.svg" width="38" height="38" alt=""><span>commerce<span class="brand-sub">REAL-TIME DATA PLATFORM</span></span></a>
+    <button class="workspace-switch" id="workspace-info"><span class="workspace-avatar">E</span><span><strong>E-commerce workspace</strong><small>Personal workspace</small></span><span data-icon="chevrons" class="muted"></span></button>
+    <div class="nav-label">WORKSPACE</div>
+    <nav>
+      <a href="#overview" class="nav-item active" data-page="overview"><span data-icon="grid"></span>Overview</a>
+      <a href="#analytics" class="nav-item" data-page="analytics"><span data-icon="chart"></span>Analytics<span class="nav-new">NEW</span></a>
+      <a href="#transactions" class="nav-item" data-page="transactions"><span data-icon="arrows"></span>Transactions</a>
+      <div class="nav-label second-label">DATA MANAGEMENT</div>
+      <a href="#pipeline" class="nav-item" data-page="pipeline"><span data-icon="workflow"></span>Data pipeline<span class="nav-dot"></span></a>
+      <a href="#warehouse" class="nav-item" data-page="warehouse"><span data-icon="database"></span>Warehouse</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="insight-card"><div class="insight-symbol" data-icon="sparkles"></div><strong>Good data. Better decisions.</strong><p>See how your data gets from<br>an event to an insight.</p><a href="#pipeline">Explore the pipeline <span data-icon="arrow-right"></span></a><div class="insight-decoration"></div></div>
+      <a href="#settings" class="nav-item" data-page="settings"><span data-icon="settings"></span>Settings</a>
+      <button class="nav-item" id="sign-out-button" hidden><span data-icon="external"></span>Sign out</button>
+      <button class="nav-item" id="help-button"><span data-icon="help"></span>Help & documentation<span data-icon="external" class="nav-trailing"></span></button>
+      <button class="profile" id="profile-button"><span class="avatar profile-avatar">HL</span><span><strong>Habib Lawal</strong><small>Workspace owner</small></span><span data-icon="chevrons" class="muted"></span></button>
+    </div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left"><button class="icon-button menu-button" id="menu-button" aria-label="Open navigation" aria-expanded="false"><span data-icon="menu"></span></button><span class="breadcrumb-icon" data-icon="panels"></span><span class="breadcrumb">Workspace <span>/</span></span><strong class="project-title">Real-Time E-commerce Data Platform</strong></div>
+      <div class="topbar-actions"><span class="demo-badge"><span class="small-dot"></span>Demo workspace</span><button class="icon-button" id="theme-button" aria-label="Switch to dark theme"><span data-icon="sun"></span></button><span class="topbar-divider"></span><button class="icon-button notification-button" id="notification-button" aria-label="Open notifications" aria-expanded="false"><span data-icon="bell"></span><i></i></button><button class="avatar top-avatar" id="top-profile-button" aria-label="Open profile settings">HL</button></div>
+    </header>
+    <main id="main" tabindex="-1">
+      <section class="page-intro"><div><div class="eyebrow" id="eyebrow">YOUR BUSINESS, IN FOCUS</div><div class="page-title-row"><h1 id="page-title">Overview</h1><span class="live-pill" id="live-pill"><span class="small-dot"></span>Live updates</span></div><p id="page-description">A little perspective on everything happening in your store.</p></div><div class="intro-actions"><label class="range-control" for="date-range"><span data-icon="calendar"></span><select id="date-range"><option value="1">Last 24 hours</option><option value="7" selected>Last 7 days</option><option value="30">Last 30 days</option></select><span data-icon="chevron-down"></span></label><button class="button primary" id="export-button"><span data-icon="download"></span>Export report</button></div></section>
+      <div id="error-banner" class="error-banner" role="alert" hidden></div>
+      <div id="page-content" aria-busy="true"><div class="loading-state"><div class="loading-spinner"></div><p>Bringing your data into focus…</p></div></div>
+      <footer class="page-footer"><span><span class="small-dot"></span><span id="footer-status">Connecting to the local demo stream</span></span><span>Made for the bigger picture. <span class="footer-brand">commerce</span></span></footer>
+    </main>
+  </div>
+  <div id="notification-panel" class="notification-panel" hidden><div class="panel-heading"><strong>Your activity</strong><span class="badge neutral">Local demo</span></div><div id="notification-list"></div></div>
+  <dialog id="detail-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

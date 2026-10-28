@@ -1,0 +1,16 @@
+import { readFile, stat } from 'node:fs/promises';
+import { secret } from '../config.mjs';
+const file = process.argv[2];
+if (!file) throw new Error('Usage: npm run ingest -- path/to/transaction.json');
+const origin = process.env.APP_ORIGIN;
+if (!origin) throw new Error('Set APP_ORIGIN to the target workspace origin.');
+const url = new URL(origin);
+if (url.origin !== origin || (url.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(url.hostname))) throw new Error('Use an HTTPS origin, or localhost for development.');
+const key = secret(process.env, 'INGEST_API_KEY');
+if (!key) throw new Error('Set INGEST_API_KEY or INGEST_API_KEY_FILE.');
+if ((await stat(file)).size > 131072) throw new Error('The JSON file exceeds 128 KiB.');
+const body = await readFile(file, 'utf8'); JSON.parse(body);
+const response = await fetch(`${origin}/api/ingest`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body, signal: AbortSignal.timeout(15000) });
+const result = await response.json();
+if (!response.ok) throw new Error(result.error || `Ingestion failed with status ${response.status}.`);
+console.log(JSON.stringify(result));

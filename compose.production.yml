@@ -1,0 +1,120 @@
+name: commerce-platform
+x-app: &app
+  build: .
+  image: commerce-platform:2.0.0
+  init: true
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  pids_limit: 128
+  mem_limit: 512m
+  cpus: 1.0
+  environment: &environment
+    NODE_ENV: production
+    DATA_MODE: postgres
+    HOST: 0.0.0.0
+    APP_ORIGIN: https://${DOMAIN:?Set DOMAIN in .env.production}
+    ADMIN_USERNAME: ${ADMIN_USERNAME:?Set ADMIN_USERNAME in .env.production}
+    ADMIN_PASSWORD_HASH_FILE: /run/secrets/admin_password_hash
+    INGEST_API_KEY_FILE: /run/secrets/ingest_api_key
+    PGHOST: database
+    PGPORT: 5432
+    PGDATABASE: commerce
+    PGUSER: commerce_app
+    PGPASSWORD_FILE: /run/secrets/app_database_password
+    # Plaintext is limited to the private Docker bridge. For managed DBs use verify-full.
+    DATABASE_SSL: disable
+    TRUST_PROXY: "true"
+  secrets: [admin_password_hash, ingest_api_key, app_database_password]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  database:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: commerce
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password, app_database_password]
+    volumes:
+      - database_data:/var/lib/postgresql/data
+      - ./deploy/init-database.sh:/docker-entrypoint-initdb.d/10-commerce.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d commerce"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    shm_size: 128mb
+    mem_limit: 1g
+    cpus: 2.0
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+  migrate:
+    <<: *app
+    restart: "no"
+    command: [node, dashboard/scripts/migrate.mjs]
+    environment:
+      <<: *environment
+      PGUSER: postgres
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      DATABASE_APP_USER: commerce_app
+    secrets: [admin_password_hash, ingest_api_key, postgres_password]
+    healthcheck: { disable: true }
+    depends_on:
+      database: { condition: service_healthy }
+  app:
+    <<: *app
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment: { DOMAIN: "${DOMAIN:?Set DOMAIN}" }
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app: { condition: service_healthy }
+    mem_limit: 256m
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+  worker:
+    <<: *app
+    profiles: [kafka]
+    restart: unless-stopped
+    command: [node, dashboard/worker.mjs]
+    environment:
+      <<: *environment
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-}
+      KAFKA_TOPIC: ${KAFKA_TOPIC:-ecommerce-transactions}
+      KAFKA_GROUP_ID: ${KAFKA_GROUP_ID:-commerce-platform-v1}
+      KAFKA_SSL: "true"
+      KAFKA_SASL_MECHANISM: ${KAFKA_SASL_MECHANISM:-}
+      KAFKA_SASL_USERNAME: ${KAFKA_SASL_USERNAME:-}
+      KAFKA_SASL_PASSWORD_FILE: /run/secrets/kafka_sasl_password
+    secrets: [admin_password_hash, ingest_api_key, app_database_password, kafka_sasl_password]
+    healthcheck: { disable: true }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+secrets:
+  admin_password_hash: { file: ./secrets/admin_password_hash }
+  postgres_password: { file: ./secrets/postgres_password }
+  app_database_password: { file: ./secrets/app_database_password }
+  ingest_api_key: { file: ./secrets/ingest_api_key }
+  kafka_sasl_password: { file: ./secrets/kafka_sasl_password }
+volumes:
+  database_data:
+  caddy_data:
+  caddy_config:
